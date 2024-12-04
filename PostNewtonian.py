@@ -119,10 +119,10 @@ def simulate(n_bodies, time_steps, dt):
     Simulate the N-body system and plot each frame in real time.
     """
     # Initialize positions, velocities, and masses
-    positions = np.random.rand(n_bodies, 3) * 1e11  # Example: in meters
+    positions = np.random.rand(n_bodies, 3) * 1e12  # Example: in meters
     #velocities = np.random.rand(n_bodies, 3) * 1e3   # Example: in m/s
     velocities = np.zeros_like(positions)
-    masses = np.random.rand(n_bodies) * 1e33        # Example: in kg
+    masses = np.random.rand(n_bodies) * 1e31        # Example: in kg
     #masses = np.zeros(n_bodies)
     #masses[0]=1e20
     #masses[1]=1e33
@@ -171,7 +171,7 @@ def simulate(n_bodies, time_steps, dt):
     plt.show()
 
 # Parameters
-n_bodies = 20
+n_bodies = 100
 time_steps = 50000
 dt = 1e3  # Time step in seconds
 
