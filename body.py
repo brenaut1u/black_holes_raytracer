@@ -1,10 +1,6 @@
 import numpy as np
 from utilities import *
 
-c = 2.99e8
-h = 6.62607015e-34
-nu = 550e9
-
 class Body:
     def __init__(self, pos, velocity, acceleration, mass, id):
         self.pos = pos

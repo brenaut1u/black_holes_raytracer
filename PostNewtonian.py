@@ -9,11 +9,8 @@ Created on Sat Nov 30 22:47:20 2024
 import numpy as np
 from numba import njit, prange
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
-# Constants
-G = 6.67430e-11  # Gravitational constant
-c = 299792458    # Speed of light
+import matplotlib.animation as animation
+from utilities import *
 
 @njit(parallel=True)
 def compute_accelerations_and_jerks(positions, velocities, masses):
@@ -23,7 +20,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses):
     n = len(masses)
     accelerations = np.zeros_like(positions)
     jerks = np.zeros_like(positions)
-    
+
     r_lim=1e9
     for i in prange(n):
         ai = np.zeros(3)
@@ -41,7 +38,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses):
                 # Newtonian acceleration
                 ai -= G * masses[j] * x_ij / r_ij**3
 
-                # 1PN corrections 
+                # 1PN corrections
                 vi2 = velocities[i,:] @ velocities[i,:]
                 vj2 = velocities[j,:] @ velocities[j,:]
                 vi_dot_vj=velocities[i,:] @ velocities[j,:]
@@ -59,7 +56,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses):
                 )
                 pn_correction_ij += np.dot(x_ij,4*velocities[i,:]-3*velocities[j,:])*v_ij / r_ij**3
                 a_pn = pn_correction_ij * G * masses[j] / c**2
-                
+
                 # calculate cross-terms
                 for k in range(n):
                     if k != i and k != j:
@@ -78,7 +75,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses):
                             - 0.5 / r_jk**3 * np.dot(x_ij,x_jk)
                             ) - 3.5 * G * masses[k] * x_jk / (r_ij * r_jk**3)
                         a_pn += pn_correction_ik * G * masses[j] / c**2
-                        
+
                 ai += a_pn
 
                 # Compute jerk (time derivative of acceleration)
@@ -108,72 +105,63 @@ def hermite_integrator(positions, velocities, masses, dt):
     velocities += 0.5 * (accelerations + accelerations_new) * dt + (1 / 12) * (jerks - jerks_new) * dt**2
     speed = np.sqrt(np.sum(velocities**2,axis=1))
     speed_capped = np.clip(speed,0,c)
-    for i in prange(len(speed)): 
+    for i in prange(len(speed)):
         velocities[i,:] *= speed_capped[i] / speed[i]
     positions += 0.5 * (velocities + velocities_old) * dt + (1 / 12) * (accelerations - accelerations_new) * dt**2
-    
+
     return positions, velocities
 
-def simulate(n_bodies, time_steps, dt):
-    """
-    Simulate the N-body system and plot each frame in real time.
-    """
-    # Initialize positions, velocities, and masses
-    positions = np.random.rand(n_bodies, 3) * 1e12  # Example: in meters
-    #velocities = np.random.rand(n_bodies, 3) * 1e3   # Example: in m/s
-    velocities = np.zeros_like(positions)
-    masses = np.random.rand(n_bodies) * 1e31        # Example: in kg
-    #masses = np.zeros(n_bodies)
-    #masses[0]=1e20
-    #masses[1]=1e33
-    
-
-    # Set up the plot
-    plt.ion()  # Turn on interactive mode
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection='3d')
-
-    # Set axis limits
-    ax.set_xlim(-1e11, 1e11)
-    ax.set_ylim(-1e11, 1e11)
-    ax.set_zlim(-1e11, 1e11)
-    #ax.set_xlim(np.min(positions[:,0]), np.max(positions[:,0]))
-    #ax.set_ylim(np.min(positions[:,1]), np.max(positions[:,1]))
-    #ax.set_zlim(np.min(positions[:,2]), np.max(positions[:,2]))
-    ax.set_xlabel("X (m)")
-    ax.set_ylabel("Y (m)")
-    ax.set_zlabel("Z (m)")
-    ax.set_title("N-body Simulation in Real-Time")
-
-    ax.scatter([], [], [], s=50)
-
-    for step in range(time_steps):
-        # Update positions and velocities
-        positions, velocities = hermite_integrator(positions, velocities, masses, dt)
-
-        # Clear and update the scatter plot
-        ax.clear()
-        ax.scatter(
-            positions[:, 0], 
-            positions[:, 1], 
-            positions[:, 2], 
-            s=30
-        )
-        ax.set_xlim(-1e12, 1e12)
-        ax.set_ylim(-1e12, 1e12)
-        ax.set_zlim(-1e12, 1e12)
-        #plt.autoscale(False)
-
-        # Pause to create the effect of real-time animation
-        plt.pause(0.01)
-
-    plt.ioff()  # Turn off interactive mode
-    plt.show()
 
 # Parameters
 n_bodies = 100
 time_steps = 50000
 dt = 1e3  # Time step in seconds
 
-# Run simulation with real-time plotting
-simulate(n_bodies, time_steps, dt)
+# Initialize positions, velocities, and masses
+positions = np.random.rand(n_bodies, 3) * 1e12  # Example: in meters
+#velocities = np.random.rand(n_bodies, 3) * 1e3   # Example: in m/s
+velocities = np.zeros_like(positions)
+masses = np.random.rand(n_bodies) * 1e31        # Example: in kg
+#masses = np.zeros(n_bodies)
+#masses[0]=1e20
+#masses[1]=1e33
+
+
+# Set up the plot
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+
+# Set axis limits
+ax.set_xlim(-1e11, 1e11)
+ax.set_ylim(-1e11, 1e11)
+ax.set_zlim(-1e11, 1e11)
+#ax.set_xlim(np.min(positions[:,0]), np.max(positions[:,0]))
+#ax.set_ylim(np.min(positions[:,1]), np.max(positions[:,1]))
+#ax.set_zlim(np.min(positions[:,2]), np.max(positions[:,2]))
+ax.set_xlabel("X (m)")
+ax.set_ylabel("Y (m)")
+ax.set_zlabel("Z (m)")
+ax.set_title("N-body Simulation in Real-Time")
+
+scat = ax.scatter(
+                    positions[:, 0],
+                    positions[:, 1],
+                    positions[:, 2],
+                    s=30
+                 )
+
+ax.set_xlim(-1e12, 1e12)
+ax.set_ylim(-1e12, 1e12)
+ax.set_zlim(-1e12, 1e12)
+plt.autoscale(False)
+
+def animate(frame):
+    global positions, velocities
+    positions, velocities = hermite_integrator(positions, velocities, masses, dt)
+    scat._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
+    return (scat, )
+
+ani = animation.FuncAnimation(
+    fig=fig, func=animate, interval=100, blit=False)
+
+plt.show(block=True)
