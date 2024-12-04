@@ -162,6 +162,6 @@ def animate(frame):
     return (scat, )
 
 ani = animation.FuncAnimation(
-    fig=fig, func=animate, interval=100, blit=False)
+    fig=fig, func=animate, interval=100, blit=False, save_count=50)
 
 plt.show(block=True)
