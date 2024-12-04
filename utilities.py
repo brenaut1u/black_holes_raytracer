@@ -6,5 +6,8 @@ nu = 550e9
 G = 6.67430e-11
 
 def normalize(v):
-    n = np.linalg.norm(v)
-    return v / n
+    if len(v.shape) == 1:
+        return v / np.linalg.norm(v)
+    else:
+        n = np.linalg.norm(v, axis=-1)[:, None]
+        return v / n

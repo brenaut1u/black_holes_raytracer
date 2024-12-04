@@ -1,23 +1,33 @@
 import numpy as np
+from matplotlib import pyplot as plt
 from camera import *
-from body import *
+# from PostNewtonian import *
 
 class Scene:
     def __init__(self, background_image):
         self.camera = Camera(np.asarray([0, 0, 0]),
                              np.asarray([0, 1, 0]),
                              np.asarray([0, 0, -1e9]),
-                             1,
+                             0.3,
                              1,
                              1000,
                              19 / 9,
-                             background_image)
+                             background_image,
+                             1e10)
 
-        self.bodies = [BlackHole(np.asarray([0, 0, -1e9]),
-                                 np.asarray([0, 0, 0]),
-                                 np.asarray([0, 0, 0]),
-                                 1.9891e33)]
+        self.positions = np.asarray([[0, 0, -1e9]])
+        self.velocities = np.asarray([[0, 0, 0]])
+        self.masses = np.asarray([1.9891e33])
+
+
+    # TODO: dt should not be constant
+    def update_scene(self, dt):
+        self.positions, self.velocities = hermite_integrator(self.positions, self.velocities, self.masses, dt)
 
     def render_animation(self, nb_frames, dt):
         for frame in range(nb_frames):
-            pass
+            # self.update_scene(dt)
+            image = self.camera.render(self.positions, self.velocities, self.masses)
+            plt.axis("off")
+            plt.imshow(image)
+            plt.show()
