@@ -37,7 +37,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
         ai_pert = np.zeros(3)
 
         for j in range(n):
-            if i != j:
+            if i != j and masses[j] >= 10*h*nu/c**2: # excluding influence of photons
                 # Relative vectors
                 x_ij = (positions[i,:] - positions[j,:])
                 v_ij = velocities[i,:] - velocities[j,:]
@@ -70,7 +70,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
 
                 # calculate cross-terms
                 for k in range(n):
-                    if k != i and k != j:
+                    if k != i and k != j and masses[k] >= 10*h*nu/c**2: # excluding influence of photons
                         # Relative vectors
                         x_jk = positions[j,:] - positions[k,:]
                         x_ik = positions[i,:] - positions[k,:]
