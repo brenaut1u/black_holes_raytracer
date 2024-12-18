@@ -11,7 +11,7 @@ from PIL import Image  # For GIF creation
 import numpy as np
 from numba import njit, prange
 import matplotlib
-#matplotlib.use('TkAgg')
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -136,53 +136,53 @@ def simulate_photon(n_bodies,masses,dt,positions,velocities,accelerations_pert_o
 
 
 # Parameters
-n_bodies = 10
-time_steps = 300
-dt = 1e3  # Time step in seconds
-positions = np.random.rand(n_bodies, 3) * scale  # in meters
-velocities = np.random.rand(n_bodies, 3) * 1e3  # in m/s
-accelerations_pert_old = np.zeros_like(positions)
-masses = np.random.rand(n_bodies) * 1e33  # in kg
-masses[0]=1e36 #Super Massive Black Hole SMBH
+#n_bodies = 10
+#time_steps = 300
+#dt = 1e3  # Time step in seconds
+#positions = np.random.rand(n_bodies, 3) * scale  # in meters
+#velocities = np.random.rand(n_bodies, 3) * 1e3  # in m/s
+#accelerations_pert_old = np.zeros_like(positions)
+#masses = np.random.rand(n_bodies) * 1e33  # in kg
+#masses[0]=1e36 #Super Massive Black Hole SMBH
 #
 #
-pos_photons = np.array([
-    [0, 0, 0],  # 光子1的位置
-    [0, 0, 1],  # 光子2的位置
-    [0, 0, 2]   # 光子3的位置
-])
-#
-# # 定义光子的速度方向
-velocities_photons = np.array([
-    [1, 0, 0],  # 光子1的速度方向
-    [1, 0, 0],  # 光子2的速度方向
-    [1, 0, 0]   # 光子3的速度方向
-]) * c  # 乘以光速
-masses_photons=(h * 780e12 / c**2) * np.ones(pos_photons.shape[0])
-
-n_bodies = 10
-time_steps = 300
-dt = np.float64(1e3)  # Time step in seconds
-positions = np.random.rand(n_bodies, 3).astype(np.float64) * scale  # in meters
-velocities = np.random.rand(n_bodies, 3).astype(np.float64) * 1e3  # in m/s
-accelerations_pert_old = np.zeros_like(positions, dtype=np.float64)
-masses = np.random.rand(n_bodies).astype(np.float64) * 1e33  # in kg
-masses[0] = np.float64(1e36)  # Super Massive Black Hole SMBH
-#
-pos_photons = np.array([
-    [0.0, 0.0, 0.0],  # 光子1的位置
-    [0.0, 0.0, 1.0],  # 光子2的位置
-    [0.0, 0.0, 2.0]   # 光子3的位置
-], dtype=np.float64)
+#pos_photons = np.array([
+   # [0, 0, 0],  # 光子1的位置
+  #  [0, 0, 1],  # 光子2的位置
+ #   [0, 0, 2]   # 光子3的位置
+#])
 #
 # # 定义光子的速度方向
-velocities_photons = np.array([
-    [1.0, 0.0, 0.0],  # 光子1的速度方向
-    [1.0, 0.0, 0.0],  # 光子2的速度方向
-    [1.0, 0.0, 0.0]   # 光子3的速度方向
-], dtype=np.float64) * c  # 乘以光速
+#velocities_photons = np.array([
+   # [1, 0, 0],  # 光子1的速度方向
+  #  [1, 0, 0],  # 光子2的速度方向
+ #   [1, 0, 0]   # 光子3的速度方向
+#]) * c  # 乘以光速
+#masses_photons=(h * 780e12 / c**2) * np.ones(pos_photons.shape[0])
+
+#n_bodies = 10
+#time_steps = 300
+#dt = np.float64(1e3)  # Time step in seconds
+#positions = np.random.rand(n_bodies, 3).astype(np.float64) * scale  # in meters
+#velocities = np.random.rand(n_bodies, 3).astype(np.float64) * 1e3  # in m/s
+#accelerations_pert_old = np.zeros_like(positions, dtype=np.float64)
+#masses = np.random.rand(n_bodies).astype(np.float64) * 1e33  # in kg
+#masses[0] = np.float64(1e36)  # Super Massive Black Hole SMBH
 #
-masses_photons = np.full(pos_photons.shape[0], h * 780e12 / c**2, dtype=np.float64)
+#pos_photons = np.array([
+   # [0.0, 0.0, 0.0],  # 光子1的位置
+  #  [0.0, 0.0, 1.0],  # 光子2的位置
+ #   [0.0, 0.0, 2.0]   # 光子3的位置
+#], dtype=np.float64)
+#
+# # 定义光子的速度方向
+#velocities_photons = np.array([
+   # [1.0, 0.0, 0.0],  # 光子1的速度方向
+  #  [1.0, 0.0, 0.0],  # 光子2的速度方向
+ #   [1.0, 0.0, 0.0]   # 光子3的速度方向
+#], dtype=np.float64) * c  # 乘以光速
+#
+#masses_photons = np.full(pos_photons.shape[0], h * 780e12 / c**2, dtype=np.float64)
 
 
-simulate_photon(n_bodies,masses,dt,positions,velocities,accelerations_pert_old,pos_photons,velocities_photons,masses_photons)
+#simulate_photon(n_bodies,masses,dt,positions,velocities,accelerations_pert_old,pos_photons,velocities_photons,masses_photons)
