@@ -15,15 +15,7 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-#from utilities import *
-
-# Constants
-G = 6.67430e-11  # Gravitational constant in N*m^2/s^2
-c = 299792458    # Speed of light in m/s
-h = 6.62607015e-34
-nu = 550e9
-#eps = np.finfo(float).eps
-scale=1e12
+from utilities import *
 
 @njit(parallel=True)
 def compute_accelerations_and_jerks(positions, velocities, masses, accelerations_pert_old, dt):

@@ -1,5 +1,6 @@
 import numpy as np
 from utilities import *
+from photons import simulate_photon
 
 class Camera:
     def __init__(self, position, up, lookat, focal_length, cam_width, im_width, im_ratio, background_image, background_dist):
@@ -24,17 +25,28 @@ class Camera:
         self.background_image = background_image
         self.background_dist = background_dist
 
-    def render(self, obj_pos, obj_velocities, obj_masses):
+    def render(self, obj_pos, obj_velocities, obj_masses, dt):
+        n_bodies = np.int32(obj_pos.shape[0])
+        accelerations_pert_old = np.zeros_like(obj_pos, dtype=np.float64)
+
+
         pos_photons = self.top[np.newaxis, :] + np.tile(np.arange(self.im_width)[:, np.newaxis] * self.u * self.width / self.im_width, (self.im_height, 1)) \
                                               - np.repeat(np.arange(self.im_height)[:, np.newaxis] * self.v * self.height / self.im_height, self.im_width, axis=0)
-
         velocities_photons = c * normalize(pos_photons - self.position)
-
         masses_photons = (h * nu / c**2) * np.ones(pos_photons.shape[0])
 
         colors = 0 * pos_photons
 
-        pos_photons += velocities_photons  # TODO: update photons positions and velocities properly
+        # pos_photons += velocities_photons
+        pos_photons, velocities_photons, accelerations_pert_old = simulate_photon(n_bodies,
+                                                                                  obj_masses,
+                                                                                  dt,
+                                                                                  obj_pos,
+                                                                                  obj_velocities,
+                                                                                  accelerations_pert_old,
+                                                                                  pos_photons,
+                                                                                  velocities_photons,
+                                                                                  masses_photons)
 
         reached_background = np.linalg.norm(pos_photons - self.position, axis=-1) > self.background_dist  # the photons that travelled beyond a certain distance to the camera
 
@@ -42,14 +54,30 @@ class Camera:
         o = np.tile(obj_pos[:, np.newaxis, :], (1, pos_photons.shape[0], 1))
         reached_object = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < 1000  # the photons that are closer than a certain threshold to at least one object
 
-        while np.max(~reached_object & ~reached_background) > 0:
-            pos_photons += velocities_photons  # TODO: update properly positions and velocities of photons that still need to be moved
+        still_moving = ~reached_object & ~reached_background
 
-            reached_background = np.linalg.norm(pos_photons - self.position, axis=-1) > self.background_dist  # the photons that travelled beyond a certain distance to the camera
+        while np.max(still_moving) > 0:
+            print(len(still_moving[still_moving > 0]))
+            # pos_photons[still_moving] += velocities_photons[still_moving]
+            (pos_photons[still_moving],
+             velocities_photons[still_moving],
+             accelerations_pert_old[still_moving]) = simulate_photon(n_bodies,
+                                                                     obj_masses,
+                                                                     dt,
+                                                                     obj_pos,
+                                                                     obj_velocities,
+                                                                     accelerations_pert_old,
+                                                                     pos_photons[still_moving],
+                                                                     velocities_photons[still_moving],
+                                                                     masses_photons[still_moving])
 
-            p = np.tile(pos_photons[np.newaxis, :, :], (obj_pos.shape[0], 1, 1))
-            o = np.tile(obj_pos[:, np.newaxis, :], (1, pos_photons.shape[0], 1))
-            reached_object = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < 1000  # the photons that are closer than a certain threshold to at least one object
+            reached_background[still_moving] = np.linalg.norm(pos_photons[still_moving] - self.position, axis=-1) > self.background_dist  # the photons that travelled beyond a certain distance to the camera
+
+            p = np.tile(pos_photons[still_moving][np.newaxis, :, :], (obj_pos.shape[0], 1, 1))
+            o = np.tile(obj_pos[:, np.newaxis, :], (1, pos_photons[still_moving].shape[0], 1))
+            reached_object[still_moving] = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < 1000  # the photons that are closer than a certain threshold to at least one object
+
+            still_moving[still_moving] = ~reached_object[still_moving] & ~reached_background[still_moving]
 
         colors[reached_object, :] = np.zeros(3)  # we assume the photons reached a singularity (would need to be changed if we have other objects such as stars)
 

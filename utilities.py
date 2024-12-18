@@ -1,9 +1,10 @@
 import numpy as np
 
-c = 2.99e8
+c = 299792458
 h = 6.62607015e-34
 nu = 550e9
 G = 6.67430e-11
+scale=1e12
 
 def normalize(v):
     if len(v.shape) == 1:

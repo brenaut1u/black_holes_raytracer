@@ -27,7 +27,7 @@ class Scene:
     def render_animation(self, nb_frames, dt):
         for frame in range(nb_frames):
             # self.update_scene(dt)
-            image = self.camera.render(self.positions, self.velocities, self.masses)
+            image = self.camera.render(self.positions, self.velocities, self.masses, np.float64(1e3))
             plt.axis("off")
             plt.imshow(image)
             plt.show()

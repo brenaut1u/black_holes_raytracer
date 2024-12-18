@@ -133,57 +133,59 @@ def hermite_integrator(positions, velocities, masses, accelerations_pert_old, dt
 
     return positions, velocities, accelerations_pert
 
+if __name__ == "__main__":
+    # Parameters
+    n_bodies = 100
+    time_steps = 50000
+    dt = 1e3  # Time step in seconds
 
-# Parameters
-n_bodies = 100
-time_steps = 50000
-dt = 1e3  # Time step in seconds
+    #scale=1e10 # in kilometers
 
-#scale=1e10 # in kilometers
-
-# Initialize positions, velocities, and masses
-positions = np.random.rand(n_bodies, 3) * scale  # in meters
-#positions = np.zeros([n_bodies, 3])
-#positions[1,:] = np.asarray([scale,scale,scale])
-velocities = np.random.rand(n_bodies, 3) * 1e3  # in m/s
-#velocities = np.zeros_like(positions)
-accelerations_pert_old = np.zeros_like(positions)
-masses = np.random.rand(n_bodies) * 1e33      # in kg
-#masses = np.zeros(n_bodies)
-#masses[0]=1e30
-#masses[1]=1e33
+    # Initialize positions, velocities, and masses
+    positions = np.random.rand(n_bodies, 3) * scale  # in meters
+    #positions = np.zeros([n_bodies, 3])
+    #positions[1,:] = np.asarray([scale,scale,scale])
+    velocities = np.random.rand(n_bodies, 3) * 1e3  # in m/s
+    #velocities = np.zeros_like(positions)
+    accelerations_pert_old = np.zeros_like(positions)
+    # masses = np.random.rand(n_bodies) * 1e33      # in kg
+    masses = np.ones(n_bodies) * 1e10
+    masses[0] = 1e35
+    #masses = np.zeros(n_bodies)
+    #masses[0]=1e30
+    #masses[1]=1e33
 
 
-# Set up the plot
-fig = plt.figure(figsize=(10, 8))
-ax = fig.add_subplot(111, projection='3d')
+    # Set up the plot
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
 
-# Set axis limits
+    # Set axis limits
 
-ax.set_xlabel("X (m)")
-ax.set_ylabel("Y (m)")
-ax.set_zlabel("Z (m)")
-ax.set_title("N-body Simulation in Real-Time")
+    ax.set_xlabel("X (m)")
+    ax.set_ylabel("Y (m)")
+    ax.set_zlabel("Z (m)")
+    ax.set_title("N-body Simulation in Real-Time")
 
-scat = ax.scatter(
-                    positions[:, 0],
-                    positions[:, 1],
-                    positions[:, 2],
-                    s=30
-                 )
+    scat = ax.scatter(
+                        positions[:, 0],
+                        positions[:, 1],
+                        positions[:, 2],
+                        s=30
+                     )
 
-ax.set_xlim(0, scale)
-ax.set_ylim(0, scale)
-ax.set_zlim(0, scale)
-plt.autoscale(False)
+    ax.set_xlim(0, scale)
+    ax.set_ylim(0, scale)
+    ax.set_zlim(0, scale)
+    plt.autoscale(False)
 
-def animate(frame):
-    global positions, velocities, accelerations_pert_old
-    positions, velocities, accelerations_pert_old = hermite_integrator(positions, velocities, masses, accelerations_pert_old, dt)
-    scat._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
-    return (scat, )
+    def animate(frame):
+        global positions, velocities, accelerations_pert_old
+        positions, velocities, accelerations_pert_old = hermite_integrator(positions, velocities, masses, accelerations_pert_old, dt)
+        scat._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
+        return (scat, )
 
-ani = animation.FuncAnimation(
-    fig=fig, func=animate, interval=100, blit=False)
+    ani = animation.FuncAnimation(
+        fig=fig, func=animate, interval=100, blit=False)
 
-plt.show(block=True)
+    plt.show(block=True)
