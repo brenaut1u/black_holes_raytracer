@@ -15,8 +15,8 @@ class Scene:
                              background_image,
                              1e10)
 
-        self.positions = np.asarray([[0, 0, -1e9]])
-        self.velocities = np.asarray([[0, 0, 0]])
+        self.positions = np.asarray([[0., 0., -1e9]])
+        self.velocities = np.asarray([[0., 0., 0.]])
         self.masses = np.asarray([1.9891e33])
 
 
