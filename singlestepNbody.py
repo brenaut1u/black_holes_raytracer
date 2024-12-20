@@ -17,7 +17,7 @@ import matplotlib.animation as animation
 
 from utilities import *
 
-@njit(parallel=True)
+# @njit(parallel=True)
 def compute_accelerations_and_jerks(positions, velocities, masses, accelerations_pert_old, dt):
     """
     Compute accelerations and jerks using Newtonian gravity and 1PN corrections.
@@ -102,7 +102,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
 
     return accelerations, jerks, accelerations_pert
 
-@njit(parallel=True)
+# @njit(parallel=True)
 def hermite_integrator(positions, velocities, masses, accelerations_pert_old, dt):
     """
     Advance the system using Hermite integration.

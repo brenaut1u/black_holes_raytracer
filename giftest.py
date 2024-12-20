@@ -6,18 +6,21 @@ from matplotlib.animation import PillowWriter
 import os
 
 #constant
-time_steps = 400
-dt = np.float64(100)  #
+time_steps = 30
+dt = np.float64(0.01)  #
 
 # N body
 n_bodies = 1
-positions = np.random.rand(n_bodies, 3).astype(np.float64) * 1e12
-positions[0, :] = [0e11, 0e11, 4e11]
-velocities = np.random.rand(n_bodies, 3).astype(np.float64) * 1e3
-velocities[0,:]=[0,0,0]
-masses = np.random.rand(n_bodies).astype(np.float64) * 1e33
-masses[0] = np.float64(1e36)  # SMBH
-accelerations_pert_old = np.zeros_like(positions, dtype=np.float64)
+# positions = np.random.rand(n_bodies, 3).astype(np.float64) * 1e12
+# positions[0, :] = [0e11, 0e11, 4e11]
+# velocities = np.random.rand(n_bodies, 3).astype(np.float64) * 1e3
+# velocities[0,:]=[0,0,0]
+# masses = np.random.rand(n_bodies).astype(np.float64) * 1e33
+# masses[0] = np.float64(1e36)  # SMBH
+# accelerations_pert_old = np.zeros_like(positions, dtype=np.float64)
+positions = np.asarray([[0., 0., -1e9]])
+velocities = np.asarray([[0., 0., 0.]])
+masses = np.asarray([1.9891e33])
 
 # n_bodies = 4
 # positions = np.full((n_bodies, 3), 5e11, dtype=np.float64)
@@ -32,18 +35,49 @@ accelerations_pert_old = np.zeros_like(positions, dtype=np.float64)
 # accelerations_pert_old = np.zeros_like(positions, dtype=np.float64)
 accelerations_pert_old = np.zeros(positions.shape, dtype=np.float64)
 
+from utilities import *
 
+position=np.asarray([0, 0, 0])
+up=np.asarray([0, 1, 0])
+lookat=np.asarray([0, 0, -1e9])
+focal_length=0.3
+cam_width=1
+im_width=1
+im_ratio=16/9
 
-z_coords = np.arange(1e11, 1e12 + 1, 0.5e11, dtype=np.float64).reshape(-1, 1)  #
+s_position = position
+s_focal_length = focal_length
 
+s_w = normalize(position - lookat)
+s_v = normalize(up - np.dot(up, s_w) * s_w)
+s_u = np.cross(s_v, s_w)
 
-pos_photons = np.hstack((np.full((z_coords.shape[0], 1), 0, dtype=np.float64),  #
-                         np.full((z_coords.shape[0], 1), 5e11, dtype=np.float64),
-                         z_coords))  # z
+s_width = cam_width
+s_height = 1#s_width / im_ratio
 
+s_im_width = im_width
+s_im_height = im_width#int(im_width / im_ratio)
 
-velocities_photons = np.tile([1.0, 0, 0.0], (pos_photons.shape[0], 1)).astype(np.float64) * 299792458
-masses_photons = np.full(pos_photons.shape[0], 6.62607015e-34 * 780e12 / 299792458**2, dtype=np.float64)
+s_pixel_u = s_u / s_im_width
+s_pixel_v = s_v / s_im_height
+
+s_top = s_position - s_focal_length * s_w - (s_width / 2) * s_u + (s_height / 2) * s_v
+
+pos_photons = s_top[np.newaxis, :] + np.tile(np.arange(s_im_width)[:, np.newaxis] * s_u * s_width / s_im_width, (s_im_height, 1)) \
+                                              - np.repeat(np.arange(s_im_height)[:, np.newaxis] * s_v * s_height / s_im_height, s_im_width, axis=0)
+velocities_photons = c * normalize(pos_photons - s_position)
+masses_photons = (h * nu / c**2) * np.ones(pos_photons.shape[0])
+
+# z_coords = np.arange(1e11, 1e12 + 1, 0.5e11, dtype=np.float64).reshape(-1, 1)  #
+#
+#
+# pos_photons = np.hstack((np.full((z_coords.shape[0], 1), 0, dtype=np.float64),  #
+#                          np.full((z_coords.shape[0], 1), 5e11, dtype=np.float64),
+#                          z_coords))  # z
+#
+#
+# velocities_photons = np.tile([1.0, 0, 0.0], (pos_photons.shape[0], 1)).astype(np.float64) * 299792458
+# masses_photons = np.full(pos_photons.shape[0], 6.62607015e-34 * 780e12 / 299792458**2, dtype=np.float64)
 accelerations_pert_old_photon = np.zeros(velocities_photons.shape, dtype=np.float64)
 #
 
@@ -86,16 +120,18 @@ print(velocities_photons)
 nbody_positions = np.zeros((time_steps, n_bodies, 3), dtype=np.float64)
 photon_positions = np.zeros((time_steps, len(pos_photons), 3), dtype=np.float64)
 
-for t in range(time_steps):
-    n_bodies, masses, positions, velocities, accelerations_pert_old = simulate(
-        n_bodies, masses, dt, positions, velocities, accelerations_pert_old
-    )
-    nbody_positions[t] = positions
+photon_positions[0] = pos_photons
 
-    pos_photons, velocities_photons, _ = simulate_photon(
-        n_bodies, masses, dt, positions, velocities, accelerations_pert_old_photon, pos_photons, velocities_photons, masses_photons
-    )
-    photon_positions[t] = pos_photons
+for t in range(time_steps - 1):
+    # n_bodies, masses, positions, velocities, accelerations_pert_old = simulate(
+    #     n_bodies, masses, dt, positions, velocities, accelerations_pert_old
+    # )
+    # nbody_positions[t] = positions
+
+    # pos_photons, velocities_photons, _ = simulate_photon(
+    #     n_bodies, masses, dt, positions, velocities, accelerations_pert_old_photon, pos_photons, velocities_photons, masses_photons
+    # )
+    photon_positions[t + 1] = pos_photons
 
 import matplotlib.pyplot as plt
 from matplotlib.animation import PillowWriter
@@ -103,15 +139,21 @@ from matplotlib.animation import PillowWriter
 fig = plt.figure(figsize=(8, 8))
 ax = fig.add_subplot(111, projection='3d')
 
-ax.set_xlim(0, 1e12)
-ax.set_ylim(0, 1e12)
-ax.set_zlim(0, 1e12)
+max_scale_xy = 1e10
+max_scale_z = 1.1e9
+ax.set_xlim(-max_scale_xy, max_scale_xy)
+ax.set_ylim(-max_scale_xy, max_scale_xy)
+ax.set_zlim(-max_scale_z, 0)
 
 
 ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
 ax.set_zlabel('Z (m)')
 
+ax.scatter(photon_positions[0, :, 0], photon_positions[0, :, 1], photon_positions[0, :, 2],
+                   color='blue', s=10, label='Photons')
+ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], color='red', label='N-body')
+plt.show(block=True)
 
 photon_traj_x = []
 photon_traj_y = []
@@ -121,24 +163,24 @@ photon_traj_z = []
 
 def update(frame):
     ax.cla()
-    ax.set_xlim(0, 1e12)
-    ax.set_ylim(0, 1e12)
-    ax.set_zlim(0, 1e12)
+    ax.set_xlim(-max_scale_xy, max_scale_xy)
+    ax.set_ylim(-max_scale_xy, max_scale_xy)
+    ax.set_zlim(-max_scale_z, 0)
     ax.set_xlabel('X (m)')
     ax.set_ylabel('Y (m)')
     ax.set_zlabel('Z (m)')
 
 
     positions = nbody_positions[frame]
-    ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], color='red', label='N-body')
+    # ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], color='red', label='N-body')
 
-    for i in range(len(pos_photons)):
-        photon_traj_x.append(photon_positions[frame, i, 0])
-        photon_traj_y.append(photon_positions[frame, i, 1])
-        photon_traj_z.append(photon_positions[frame, i, 2])
-        # ax.plot(photon_traj_x, photon_traj_y, photon_traj_z, 'b-', linewidth=0.5, label='Photon trajectory')
-        ax.scatter(photon_positions[frame, i, 0], photon_positions[frame, i, 1], photon_positions[frame, i, 2],
-                   color='blue', s=10, label='Photons')
+    # for i in range(len(pos_photons)):
+    #     photon_traj_x.append(photon_positions[frame, i, 0])
+    #     photon_traj_y.append(photon_positions[frame, i, 1])
+    #     photon_traj_z.append(photon_positions[frame, i, 2])
+    #     # ax.plot(photon_traj_x, photon_traj_y, photon_traj_z, 'b-', linewidth=0.5, label='Photon trajectory')
+    ax.scatter(photon_positions[frame, :, 0], photon_positions[frame, :, 1], photon_positions[frame, :, 2],
+               color='blue', s=10, label='Photons')
 
 
 # GIF
