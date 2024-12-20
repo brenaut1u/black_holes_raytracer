@@ -107,17 +107,11 @@ def hermite_integrator(positions, velocities, masses, accelerations_pert_old, dt
     """
     Advance the system using Hermite integration.
     """
-    # Predict positions and velocities
+    # Compute acceleration and jerks
     accelerations, jerks, accelerations_pert = compute_accelerations_and_jerks(positions, velocities, masses, accelerations_pert_old, dt)
-    positions_pred = positions + velocities * dt + 0.5 * accelerations * dt**2 + (1 / 6) * jerks * dt**3
-    velocities_pred = velocities + accelerations * dt + 0.5 * jerks * dt**2
-    velocities_old = velocities
 
-    # Evaluate accelerations and jerks
-    accelerations_new, jerks_new, accelerations_pert_new = compute_accelerations_and_jerks(positions_pred, velocities_pred, masses, accelerations_pert, dt)
-
-    # Correct positions and velocities
-    velocities += 0.5 * (accelerations + accelerations_new) * dt + (1 / 12) * (jerks - jerks_new) * dt**2
+    # Update positions and velocities
+    velocities += accelerations * dt + 1/2 * jerks * dt**2
     speed = np.sqrt(np.sum(velocities**2,axis=1))
     speed_capped = np.clip(speed,0,c)
     for i in prange(len(speed)):
@@ -125,8 +119,7 @@ def hermite_integrator(positions, velocities, masses, accelerations_pert_old, dt
             velocities[i,:] *= c/np.sqrt(velocities[i,:]@velocities[i,:])
         else:
             velocities[i,:] *= speed_capped[i] / speed[i]
-    positions += 0.5 * (velocities + velocities_old) * dt + (1 / 12) * (accelerations - accelerations_new) * dt**2
-    accelerations_pert = accelerations_pert_new
+    positions += velocities * dt + 1 / 2 * accelerations * dt**2 + 1/6 * jerks * dt**3
 
     return positions, velocities, accelerations_pert
 
