@@ -50,53 +50,6 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
             # Newtonian acceleration
             ai -= G * masses[j] * x_ij / r_ij**3
 
-            # 1PN corrections
-            vi2 = velocities_photons[i,:] @ velocities_photons[i,:]
-            vj2 = velocities[j,:] @ velocities[j,:]
-            vi_dot_vj=velocities_photons[i,:] @ velocities[j,:]
-            # vi2 = np.sum(velocities_photons[i, :] ** 2)
-            # vj2 = np.sum(velocities[j, :] ** 2)
-            # vi_dot_vj = np.sum(velocities_photons[i, :] * velocities[j, :])
-
-            vij_dot_xij = v_ij @ x_ij
-            vj_dot_nij = velocities[j] @ (x_ij/r_ij)
-
-            # Post-Newtonian terms (BH)
-            pn_correction_ij = x_ij / r_ij**3 * (
-                4 * G * masses[j] / r_ij +
-                5 * G * masses_photons[i] / r_ij -
-                1 * vi2 +
-                4 * vi_dot_vj -
-                2 * vj2 +
-                1.5*(vj_dot_nij**2)
-            )
-            pn_correction_ij += np.dot(x_ij,(4*velocities_photons[i,:]-3*velocities[j,:]))*v_ij / r_ij**3
-            a_pn = pn_correction_ij * G * masses[j] / c**2
-
-            # calculate cross-terms
-            for k in range(n):
-                if k != j:
-                    # Relative vectors
-                    x_jk = positions[j,:] - positions[k,:]
-                    x_ik = pos_photons[i,:] - positions[k,:]
-                    r_jk2 = x_jk @ x_jk
-                    r_jk = np.sqrt(r_jk2)
-                    r_jk += eps*scale
-
-                    r_ik2 = x_ik @ x_ik
-                    r_ik = np.sqrt(r_ik2)
-                    r_ik += eps*scale
-
-                    pn_correction_ik = G * masses[k] * x_ij / r_ij**3 * (
-                        1 / r_jk +
-                        + 4 / r_ik
-                        - 0.5 / r_jk**3 * np.dot(x_ij,x_jk)
-                        ) - 3.5 * G * masses[k] * x_jk / (r_ij * r_jk**3)
-                    a_pn += pn_correction_ik * G * masses[j] / c**2
-
-            ai += a_pn
-            ai_pert += a_pn
-
             # Compute Newtonian jerk (time derivative of Newtonian acceleration)
             # dai/dt=G*mj*(-dr_vec/dt/r^3+3*dr_scal/dt*r_vec/r^4)
             ji += G * masses[j] * (-v_ij / r_ij**3 + 3 * vij_dot_xij * x_ij / r_ij**5)
@@ -104,9 +57,6 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
         accelerations[i,:] = ai
         accelerations_pert[i,:] = ai_pert
         jerks[i,:] = ji
-        # jerk is calculated by adding Newtonian jerk with numerical derivative of post-Newtonian acceleration
-        if np.max(accelerations_pert_old) > 0:
-            jerks[i,:] += (accelerations_pert[i,:] - accelerations_pert_old[i,:]) / dt
 
     return accelerations, jerks, accelerations_pert
 
@@ -118,13 +68,16 @@ def hermite_integrator_photon(positions, velocities, masses, accelerations_pert_
     # Compute accelerations and jerks
     accelerations, jerks, accelerations_pert = compute_accelerations_and_jerks(positions, velocities, masses, accelerations_pert_old,dt,pos_photons,velocities_photons,masses_photons)
     
+    velocities_photons_old = velocities_photons
     # Update velocities and positions
     velocities_photons += accelerations * dt + 1/2 * jerks * dt**2
     speed = np.sqrt(np.sum(velocities**2,axis=1))
-    for i in prange(len(speed)):
+    for i in range(len(speed)):
         velocities_photons[i,:] *= c/np.sqrt(velocities_photons[i,:]@velocities_photons[i,:])
+        accelerations[i,:] = (velocities_photons[i,:] - velocities_photons_old[i,:]) / dt
+        
 
-    pos_photons += velocities_photons * dt + 1 / 2 * accelerations * dt**2 + 1 / 6 * jerks * dt**3
+    pos_photons += velocities_photons * dt + 1 / 2 * accelerations * dt**2 #+ 1 / 6 * jerks * dt**3
 
     return pos_photons, velocities_photons, accelerations_pert
 
