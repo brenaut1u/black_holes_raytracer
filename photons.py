@@ -72,7 +72,7 @@ def hermite_integrator_photon(positions, velocities, masses, accelerations_pert_
     # Update velocities and positions
     velocities_photons += accelerations * dt + 1/2 * jerks * dt**2
     speed = np.sqrt(np.sum(velocities**2,axis=1))
-    for i in range(len(speed)):
+    for i in prange(len(speed)):
         velocities_photons[i,:] *= c/np.sqrt(velocities_photons[i,:]@velocities_photons[i,:])
         accelerations[i,:] = (velocities_photons[i,:] - velocities_photons_old[i,:]) / dt
         
