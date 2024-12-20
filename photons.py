@@ -115,23 +115,16 @@ def hermite_integrator_photon(positions, velocities, masses, accelerations_pert_
     """
     Advance the system using Hermite integration.
     """
-    # Predict positions and velocities
+    # Compute accelerations and jerks
     accelerations, jerks, accelerations_pert = compute_accelerations_and_jerks(positions, velocities, masses, accelerations_pert_old,dt,pos_photons,velocities_photons,masses_photons)
-    positions_pred_p = pos_photons + velocities_photons * dt + 0.5 * accelerations * dt**2 + (1 / 6) * jerks * dt**3
-    velocities_pred_p = velocities_photons + accelerations * dt + 0.5 * jerks * dt**2
-    velocities_old = velocities_photons
-
-    # Evaluate accelerations and jerks
-    accelerations_new, jerks_new, accelerations_pert_new = compute_accelerations_and_jerks(positions, velocities, masses, accelerations_pert, dt,positions_pred_p,velocities_pred_p,masses_photons)
-
-    # Correct positions and velocities
-    velocities_photons += 0.5 * (accelerations + accelerations_new) * dt + (1 / 12) * (jerks - jerks_new) * dt**2
+    
+    # Update velocities and positions
+    velocities_photons += accelerations * dt + 1/2 * jerks * dt**2
     speed = np.sqrt(np.sum(velocities**2,axis=1))
-    for i in prange(len(speed)):
+    for i in range(len(speed)):
         velocities_photons[i,:] *= c/np.sqrt(velocities_photons[i,:]@velocities_photons[i,:])
 
-    pos_photons += 0.5 * (velocities_photons + velocities_old) * dt + (1 / 12) * (accelerations - accelerations_new) * dt**2
-    accelerations_pert = accelerations_pert_new
+    pos_photons += velocities_photons * dt + 1 / 2 * accelerations * dt**2 + 1 / 6 * jerks * dt**3
 
     return pos_photons, velocities_photons, accelerations_pert
 
