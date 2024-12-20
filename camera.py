@@ -25,7 +25,7 @@ class Camera:
         self.background_image = background_image
         self.background_dist = background_dist
 
-    def render(self, obj_pos, obj_velocities, obj_masses, dt):
+    def render(self, obj_pos, obj_velocities, obj_masses, dt, iter_max=10000):
         n_bodies = np.int32(obj_pos.shape[0])
         accelerations_pert_old = np.zeros_like(obj_pos, dtype=np.float64)
 
@@ -56,8 +56,9 @@ class Camera:
 
         still_moving = ~reached_object & ~reached_background
 
-        while np.max(still_moving) > 0:
-            print(len(still_moving[still_moving > 0]))
+        nb_iter = 0
+        while np.max(still_moving) > 0 and nb_iter < iter_max:
+            print("Photons still moving:", len(still_moving[still_moving > 0]), "; photons fallen into singularity:", len(reached_object[reached_object == 1]), "; iterations: ", nb_iter)
             # pos_photons[still_moving] += velocities_photons[still_moving]
             (pos_photons[still_moving],
              velocities_photons[still_moving],
@@ -78,6 +79,8 @@ class Camera:
             reached_object[still_moving] = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < 1000  # the photons that are closer than a certain threshold to at least one object
 
             still_moving[still_moving] = ~reached_object[still_moving] & ~reached_background[still_moving]
+
+            nb_iter += 1
 
         colors[reached_object, :] = np.zeros(3)  # we assume the photons reached a singularity (would need to be changed if we have other objects such as stars)
 

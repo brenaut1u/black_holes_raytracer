@@ -8,16 +8,16 @@ class Scene:
         self.camera = Camera(np.asarray([0, 0, 0]),
                              np.asarray([0, 1, 0]),
                              np.asarray([0, 0, -1e9]),
-                             0.3,
+                             0.1,
                              1,
-                             300,
+                             1000,
                              16 / 9,
                              background_image,
                              1e10)
 
         self.positions = np.asarray([[0., 0., -1e9]])
         self.velocities = np.asarray([[0., 0., 0.]])
-        self.masses = np.asarray([1.9891e33])
+        self.masses = np.asarray([5e35])
 
 
     # TODO: dt should not be constant
@@ -27,7 +27,7 @@ class Scene:
     def render_animation(self, nb_frames, dt):
         for frame in range(nb_frames):
             # self.update_scene(dt)
-            image = self.camera.render(self.positions, self.velocities, self.masses, np.float64(1e3))
+            image = self.camera.render(self.positions, self.velocities, self.masses, 0.1)
             plt.axis("off")
             plt.imshow(image)
             plt.show()

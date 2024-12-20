@@ -20,7 +20,7 @@ n_bodies = 1
 # accelerations_pert_old = np.zeros_like(positions, dtype=np.float64)
 positions = np.asarray([[0., 0., -1e9]])
 velocities = np.asarray([[0., 0., 0.]])
-masses = np.asarray([1e37])
+masses = np.asarray([5e35])
 
 # n_bodies = 4
 # positions = np.full((n_bodies, 3), 5e11, dtype=np.float64)
@@ -40,9 +40,9 @@ from utilities import *
 position=np.asarray([0, 0, 0])
 up=np.asarray([0, 1, 0])
 lookat=np.asarray([0, 0, -1e9])
-focal_length=0.3
+focal_length=0.1
 cam_width=1
-im_width=1
+im_width=10
 im_ratio=16/9
 
 s_position = position
@@ -150,10 +150,9 @@ ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
 ax.set_zlabel('Z (m)')
 
-ax.scatter(photon_positions[:, 0, 0], photon_positions[:, 0, 1], photon_positions[:, 0, 2],
-                   color='blue', label='Photons')
-# ax.scatter(photon_positions[0, :, 0], photon_positions[0, :, 1], photon_positions[0, :, 2],
-#                    color='blue', s=10, label='Photons')
+for i in range(photon_positions.shape[1]):
+    ax.plot(photon_positions[:, i, 0], photon_positions[:, i, 1], photon_positions[:, i, 2],
+                       color='blue', label='Photons')
 ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], color='red', label='N-body')
 plt.show(block=True)
 
