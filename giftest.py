@@ -6,7 +6,7 @@ from matplotlib.animation import PillowWriter
 import os
 
 #constant
-time_steps = 200
+time_steps = 10000
 dt = np.float64(0.1)  #
 
 # N body
@@ -20,7 +20,7 @@ n_bodies = 1
 # accelerations_pert_old = np.zeros_like(positions, dtype=np.float64)
 positions = np.asarray([[0., 0., -1e9]])
 velocities = np.asarray([[0., 0., 0.]])
-masses = np.asarray([1.9891e36])
+masses = np.asarray([1e37])
 
 # n_bodies = 4
 # positions = np.full((n_bodies, 3), 5e11, dtype=np.float64)
@@ -128,7 +128,7 @@ for t in range(time_steps - 1):
     # )
     # nbody_positions[t] = positions
 
-    pos_photons, velocities_photons, _ = simulate_photon(
+    pos_photons, velocities_photons, accelerations_pert_old_photon = simulate_photon(
         n_bodies, masses, dt, positions, velocities, accelerations_pert_old_photon, pos_photons, velocities_photons, masses_photons
     )
     photon_positions[t + 1] = pos_photons
@@ -150,7 +150,7 @@ ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
 ax.set_zlabel('Z (m)')
 
-ax.plot(photon_positions[:, 0, 0], photon_positions[:, 0, 1], photon_positions[:, 0, 2],
+ax.scatter(photon_positions[:, 0, 0], photon_positions[:, 0, 1], photon_positions[:, 0, 2],
                    color='blue', label='Photons')
 # ax.scatter(photon_positions[0, :, 0], photon_positions[0, :, 1], photon_positions[0, :, 2],
 #                    color='blue', s=10, label='Photons')

@@ -11,7 +11,7 @@ from PIL import Image  # For GIF creation
 import numpy as np
 from numba import njit, prange
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('QtAgg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -31,7 +31,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
     accelerations = np.zeros_like(pos_photons, dtype=np.float64)
     jerks = np.zeros_like(pos_photons, dtype=np.float64)
     accelerations_pert = np.zeros_like(pos_photons, dtype=np.float64)
-    eps=5e-2 # softening
+    eps=5e-3 # softening
 
     for i in prange(nphotons):
         ai = np.zeros(3)
@@ -50,10 +50,13 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
             # Newtonian acceleration
             ai -= G * masses[j] * x_ij / r_ij**3
             
+            # 1PN corrections
             vi2 = velocities_photons[i,:] @ velocities_photons[i,:]
             vj2 = velocities[j,:] @ velocities[j,:]
             vi_dot_vj=velocities_photons[i,:] @ velocities[j,:]
-
+            # vi2 = np.sum(velocities_photons[i, :] ** 2)
+            # vj2 = np.sum(velocities[j, :] ** 2)
+            # vi_dot_vj = np.sum(velocities_photons[i, :] * velocities[j, :])
 
             vij_dot_xij = v_ij @ x_ij
             vj_dot_nij = velocities[j] @ (x_ij/r_ij)
