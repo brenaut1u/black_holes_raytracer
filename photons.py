@@ -49,6 +49,14 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
 
             # Newtonian acceleration
             ai -= G * masses[j] * x_ij / r_ij**3
+            
+            vi2 = velocities_photons[i,:] @ velocities_photons[i,:]
+            vj2 = velocities[j,:] @ velocities[j,:]
+            vi_dot_vj=velocities_photons[i,:] @ velocities[j,:]
+
+
+            vij_dot_xij = v_ij @ x_ij
+            vj_dot_nij = velocities[j] @ (x_ij/r_ij)
 
             # Compute Newtonian jerk (time derivative of Newtonian acceleration)
             # dai/dt=G*mj*(-dr_vec/dt/r^3+3*dr_scal/dt*r_vec/r^4)
