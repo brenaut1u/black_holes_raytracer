@@ -11,7 +11,7 @@ from PIL import Image  # For GIF creation
 import numpy as np
 from numba import njit, prange
 import matplotlib
-matplotlib.use('QtAgg')
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
