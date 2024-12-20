@@ -6,8 +6,8 @@ from matplotlib.animation import PillowWriter
 import os
 
 #constant
-time_steps = 30
-dt = np.float64(0.01)  #
+time_steps = 200
+dt = np.float64(0.1)  #
 
 # N body
 n_bodies = 1
@@ -20,7 +20,7 @@ n_bodies = 1
 # accelerations_pert_old = np.zeros_like(positions, dtype=np.float64)
 positions = np.asarray([[0., 0., -1e9]])
 velocities = np.asarray([[0., 0., 0.]])
-masses = np.asarray([1.9891e33])
+masses = np.asarray([1.9891e36])
 
 # n_bodies = 4
 # positions = np.full((n_bodies, 3), 5e11, dtype=np.float64)
@@ -128,9 +128,9 @@ for t in range(time_steps - 1):
     # )
     # nbody_positions[t] = positions
 
-    # pos_photons, velocities_photons, _ = simulate_photon(
-    #     n_bodies, masses, dt, positions, velocities, accelerations_pert_old_photon, pos_photons, velocities_photons, masses_photons
-    # )
+    pos_photons, velocities_photons, _ = simulate_photon(
+        n_bodies, masses, dt, positions, velocities, accelerations_pert_old_photon, pos_photons, velocities_photons, masses_photons
+    )
     photon_positions[t + 1] = pos_photons
 
 import matplotlib.pyplot as plt
@@ -150,8 +150,10 @@ ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
 ax.set_zlabel('Z (m)')
 
-ax.scatter(photon_positions[0, :, 0], photon_positions[0, :, 1], photon_positions[0, :, 2],
-                   color='blue', s=10, label='Photons')
+ax.plot(photon_positions[:, 0, 0], photon_positions[:, 0, 1], photon_positions[:, 0, 2],
+                   color='blue', label='Photons')
+# ax.scatter(photon_positions[0, :, 0], photon_positions[0, :, 1], photon_positions[0, :, 2],
+#                    color='blue', s=10, label='Photons')
 ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], color='red', label='N-body')
 plt.show(block=True)
 
@@ -163,39 +165,57 @@ photon_traj_z = []
 
 def update(frame):
     ax.cla()
+
     ax.set_xlim(-max_scale_xy, max_scale_xy)
     ax.set_ylim(-max_scale_xy, max_scale_xy)
     ax.set_zlim(-max_scale_z, 0)
+
     ax.set_xlabel('X (m)')
     ax.set_ylabel('Y (m)')
     ax.set_zlabel('Z (m)')
 
-
-    positions = nbody_positions[frame]
-    # ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], color='red', label='N-body')
-
-    # for i in range(len(pos_photons)):
-    #     photon_traj_x.append(photon_positions[frame, i, 0])
-    #     photon_traj_y.append(photon_positions[frame, i, 1])
-    #     photon_traj_z.append(photon_positions[frame, i, 2])
-    #     # ax.plot(photon_traj_x, photon_traj_y, photon_traj_z, 'b-', linewidth=0.5, label='Photon trajectory')
     ax.scatter(photon_positions[frame, :, 0], photon_positions[frame, :, 1], photon_positions[frame, :, 2],
                color='blue', s=10, label='Photons')
+    ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], color='red', label='N-body')
+    # plt.show(block=True)
+
+    # fig = plt.figure(figsize=(8, 8))
+    # ax = fig.add_subplot(111, projection='3d')
+    #
+    # ax.set_xlim(-max_scale_xy, max_scale_xy)
+    # ax.set_ylim(-max_scale_xy, max_scale_xy)
+    # ax.set_zlim(-max_scale_z, 0)
+    # ax.set_xlabel('X (m)')
+    # ax.set_ylabel('Y (m)')
+    # ax.set_zlabel('Z (m)')
+    #
+    #
+    # positions = nbody_positions[frame]
+    # ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], color='red', label='N-body')
+    #
+    # # for i in range(len(pos_photons)):
+    # #     photon_traj_x.append(photon_positions[frame, i, 0])
+    # #     photon_traj_y.append(photon_positions[frame, i, 1])
+    # #     photon_traj_z.append(photon_positions[frame, i, 2])
+    # #     # ax.plot(photon_traj_x, photon_traj_y, photon_traj_z, 'b-', linewidth=0.5, label='Photon trajectory')
+    # ax.scatter(photon_positions[0, :, 0], photon_positions[0, :, 1], photon_positions[0, :, 2],
+    #            color='blue', s=10, label='Photons')
+    # plt.show(block=True)
 
 
 # GIF
-gif_path = 'nbody_photon_evolution.gif'
-frames = time_steps
-
-writer = PillowWriter(fps=30)
-with writer.saving(fig, gif_path, dpi=100):
-    for t in range(frames):
-        update(t)
-        writer.grab_frame()
-
-plt.close(fig)
-
-if os.path.exists(gif_path):
-    print(f"GIF is saved to: {gif_path}")
-else:
-    print("GIF generation failed")
+# gif_path = 'nbody_photon_evolution.gif'
+# frames = time_steps
+#
+# writer = PillowWriter(fps=30)
+# with writer.saving(fig, gif_path, dpi=100):
+#     for t in range(frames):
+#         update(t)
+#         writer.grab_frame()
+#
+# # plt.close(fig)
+#
+# if os.path.exists(gif_path):
+#     print(f"GIF is saved to: {gif_path}")
+# else:
+#     print("GIF generation failed")
