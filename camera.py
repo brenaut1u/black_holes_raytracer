@@ -1,4 +1,6 @@
 import numpy as np
+from kivy.multistroke import distance
+
 from utilities import *
 from photons import simulate_photon
 
@@ -52,13 +54,21 @@ class Camera:
 
         p = np.tile(pos_photons[np.newaxis, :, :], (obj_pos.shape[0], 1, 1))
         o = np.tile(obj_pos[:, np.newaxis, :], (1, pos_photons.shape[0], 1))
-        reached_object = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < 1000  # the photons that are closer than a certain threshold to at least one object
+
+        distance_threshold = eps * scale + 10
+        reached_object = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < distance_threshold  # the photons that are closer than a certain threshold to at least one object
 
         still_moving = ~reached_object & ~reached_background
 
         nb_iter = 0
         while np.max(still_moving) > 0 and nb_iter < iter_max:
-            print("Photons still moving:", len(still_moving[still_moving > 0]), "; photons fallen into singularity:", len(reached_object[reached_object == 1]), "; iterations: ", nb_iter)
+            if len(still_moving[still_moving > 0]) == 1:
+                print(len(still_moving), len(pos_photons))
+
+            print("Photons still moving:", len(still_moving[still_moving > 0]),
+                  "; photons fallen into singularity:", len(reached_object[reached_object == 1]),
+                  "; photons that reached background: ", len(reached_background[reached_background == 1]),
+                  "; iterations: ", nb_iter)
             # pos_photons[still_moving] += velocities_photons[still_moving]
             (pos_photons[still_moving],
              velocities_photons[still_moving],
@@ -67,7 +77,7 @@ class Camera:
                                                                      dt,
                                                                      obj_pos,
                                                                      obj_velocities,
-                                                                     accelerations_pert_old,
+                                                                     accelerations_pert_old[still_moving],
                                                                      pos_photons[still_moving],
                                                                      velocities_photons[still_moving],
                                                                      masses_photons[still_moving])
@@ -76,7 +86,7 @@ class Camera:
 
             p = np.tile(pos_photons[still_moving][np.newaxis, :, :], (obj_pos.shape[0], 1, 1))
             o = np.tile(obj_pos[:, np.newaxis, :], (1, pos_photons[still_moving].shape[0], 1))
-            reached_object[still_moving] = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < 1000  # the photons that are closer than a certain threshold to at least one object
+            reached_object[still_moving] = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < distance_threshold  # the photons that are closer than a certain threshold to at least one object
 
             still_moving[still_moving] = ~reached_object[still_moving] & ~reached_background[still_moving]
 

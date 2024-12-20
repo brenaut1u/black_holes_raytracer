@@ -5,6 +5,7 @@ h = 6.62607015e-34
 nu = 550e9
 G = 6.67430e-11
 scale = 1e12
+eps = 5e-5 # softening
 
 def normalize(v):
     if len(v.shape) == 1:

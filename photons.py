@@ -31,7 +31,6 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
     accelerations = np.zeros_like(pos_photons, dtype=np.float64)
     jerks = np.zeros_like(pos_photons, dtype=np.float64)
     accelerations_pert = np.zeros_like(pos_photons, dtype=np.float64)
-    eps=5e-5 # softening
 
     for i in prange(nphotons):
         ai = np.zeros(3)

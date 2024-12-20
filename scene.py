@@ -8,16 +8,16 @@ class Scene:
         self.camera = Camera(np.asarray([0, 0, 0]),
                              np.asarray([0, 1, 0]),
                              np.asarray([0, 0, -1e9]),
-                             0.1,
+                             0.3,
                              1,
-                             1000,
+                             200,
                              16 / 9,
                              background_image,
                              1e10)
 
-        self.positions = np.asarray([[0., 0., -1e9]])
-        self.velocities = np.asarray([[0., 0., 0.]])
-        self.masses = np.asarray([5e35])
+        self.positions = np.asarray([[-2e8, 0., -1e9], [2e8, 0., -1e9]])
+        self.velocities = np.asarray([[0., 0., 0.], [0., 0., 0.]])
+        self.masses = np.asarray([2e35, 4e35])
 
 
     # TODO: dt should not be constant

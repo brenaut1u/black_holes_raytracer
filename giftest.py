@@ -40,7 +40,7 @@ from utilities import *
 position=np.asarray([0, 0, 0])
 up=np.asarray([0, 1, 0])
 lookat=np.asarray([0, 0, -1e9])
-focal_length=0.1
+focal_length=0.3
 cam_width=1
 im_width=10
 im_ratio=16/9
