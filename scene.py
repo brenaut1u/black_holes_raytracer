@@ -31,7 +31,7 @@ class Scene:
             len(self.masses), self.masses, dt, self.positions, self.velocities, self.accelerations_pert_old
         )
 
-    def render_animation(self, nb_frames, dt):
+    def render_animation(self, nb_frames, dt, part=-1):
         for frame in range(nb_frames):
             print("Frame", frame)
             img = self.camera.render(self.positions, self.velocities, self.masses, 0.1, part=part)
