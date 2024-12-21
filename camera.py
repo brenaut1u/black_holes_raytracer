@@ -55,17 +55,17 @@ class Camera:
         p = np.tile(pos_photons[np.newaxis, :, :], (obj_pos.shape[0], 1, 1))
         o = np.tile(obj_pos[:, np.newaxis, :], (1, pos_photons.shape[0], 1))
 
-        distance_threshold = eps * scale + 10
+        distance_threshold = eps_photons * scale + 10
         reached_object = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < distance_threshold  # the photons that are closer than a certain threshold to at least one object
 
         still_moving = ~reached_object & ~reached_background
 
         nb_iter = 0
         while np.max(still_moving) > 0 and nb_iter < iter_max:
-            if len(still_moving[still_moving > 0]) == 1:
-                print(len(still_moving), len(pos_photons))
+            # if len(still_moving[still_moving > 0]) == 1:
+            #     print(len(still_moving), len(pos_photons))
 
-            print("Photons still moving:", len(still_moving[still_moving > 0]),
+            print("    Photons still moving:", len(still_moving[still_moving > 0]),
                   "; photons fallen into singularity:", len(reached_object[reached_object == 1]),
                   "; photons that reached background: ", len(reached_background[reached_background == 1]),
                   "; iterations: ", nb_iter)

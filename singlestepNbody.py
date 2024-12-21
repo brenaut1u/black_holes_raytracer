@@ -17,7 +17,7 @@ import matplotlib.animation as animation
 
 from utilities import *
 
-# @njit(parallel=True)
+@njit(parallel=True)
 def compute_accelerations_and_jerks(positions, velocities, masses, accelerations_pert_old, dt):
     """
     Compute accelerations and jerks using Newtonian gravity and 1PN corrections.
@@ -27,7 +27,6 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
     jerks = np.zeros_like(positions)
     accelerations_pert = np.zeros_like(positions)
 
-    eps=5e-2 # softening
     for i in prange(n):
         ai = np.zeros(3)
         ji = np.zeros(3)
@@ -40,7 +39,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
                 v_ij = velocities[i,:] - velocities[j,:]
                 r_ij2 = x_ij @ x_ij
                 r_ij = np.sqrt(r_ij2)
-                r_ij += eps*scale
+                r_ij += eps_bodies*scale
 
 
                 # Newtonian acceleration
@@ -73,11 +72,11 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
                         x_ik = positions[i,:] - positions[k,:]
                         r_jk2 = x_jk @ x_jk
                         r_jk = np.sqrt(r_jk2)
-                        r_jk += eps*scale
+                        r_jk += eps_bodies*scale
 
                         r_ik2 = x_ik @ x_ik
                         r_ik = np.sqrt(r_ik2)
-                        r_ik += eps*scale
+                        r_ik += eps_bodies*scale
 
                         pn_correction_ik = G * masses[k] * x_ij / r_ij**3 * (
                             1 / r_jk +
@@ -102,7 +101,7 @@ def compute_accelerations_and_jerks(positions, velocities, masses, accelerations
 
     return accelerations, jerks, accelerations_pert
 
-# @njit(parallel=True)
+@njit(parallel=True)
 def hermite_integrator(positions, velocities, masses, accelerations_pert_old, dt):
     """
     Advance the system using Hermite integration.
@@ -128,16 +127,3 @@ def simulate(n_bodies,masses,dt,positions,velocities,accelerations_pert_old):
     positions, velocities, accelerations_pert_old = hermite_integrator(positions, velocities, masses,accelerations_pert_old, dt)
 
     return n_bodies,masses,positions, velocities, accelerations_pert_old
-
-
-# # Parameters
-# n_bodies = 100
-# time_steps = 300
-# dt = 1e3  # Time step in seconds
-# positions = np.random.rand(n_bodies, 3) * scale  # in meters
-# velocities = np.random.rand(n_bodies, 3) * 1e3  # in m/s
-# accelerations_pert_old = np.zeros_like(positions)
-# masses = np.random.rand(n_bodies) * 1e33  # in kg
-# masses[0]=1e36 #Super Massive Black Hole SMBH
-# # Run simulation with real-time plotting
-# simulate(n_bodies,masses,dt,positions,velocities,accelerations_pert_old)
