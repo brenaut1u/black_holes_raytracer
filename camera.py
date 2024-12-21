@@ -1,5 +1,4 @@
 import numpy as np
-from kivy.multistroke import distance
 
 from utilities import *
 from photons import simulate_photon
@@ -27,13 +26,23 @@ class Camera:
         self.background_image = background_image
         self.background_dist = background_dist
 
-    def render(self, obj_pos, obj_velocities, obj_masses, dt, iter_max=10000):
+    def render(self, obj_pos, obj_velocities, obj_masses, dt, iter_max=10000, part=-1):
+        # If part == -1, we render the full image. Otherwise, we only render a third of it (to allow to split up the render)
+
         n_bodies = np.int32(obj_pos.shape[0])
         accelerations_pert_old = np.zeros_like(obj_pos, dtype=np.float64)
 
+        if part == -1:
+            x_range = np.arange(self.im_width)
+        elif part == 0:
+            x_range = np.arange(self.im_width // 3)
+        elif part == 1:
+            x_range = np.arange(self.im_width // 3, 2 * self.im_width // 3)
+        elif part == 2:
+            x_range = np.arange(2 * self.im_width // 3, self.im_width)
 
-        pos_photons = self.top[np.newaxis, :] + np.tile(np.arange(self.im_width)[:, np.newaxis] * self.u * self.width / self.im_width, (self.im_height, 1)) \
-                                              - np.repeat(np.arange(self.im_height)[:, np.newaxis] * self.v * self.height / self.im_height, self.im_width, axis=0)
+        pos_photons = self.top[np.newaxis, :] + np.tile(x_range[:, np.newaxis] * self.u * self.width / self.im_width, (self.im_height, 1)) \
+                                              - np.repeat(np.arange(self.im_height)[:, np.newaxis] * self.v * self.height / self.im_height, len(x_range), axis=0)
         velocities_photons = c * normalize(pos_photons - self.position)
         masses_photons = (h * nu / c**2) * np.ones(pos_photons.shape[0])
 
@@ -43,7 +52,7 @@ class Camera:
         pos_photons, velocities_photons, accelerations_pert_old = simulate_photon(n_bodies,
                                                                                   obj_masses,
                                                                                   dt,
-                                                                                  obj_pos,
+                                                                                  obj_pos.copy(),
                                                                                   obj_velocities,
                                                                                   accelerations_pert_old,
                                                                                   pos_photons,
@@ -70,12 +79,13 @@ class Camera:
                   "; photons that reached background: ", len(reached_background[reached_background == 1]),
                   "; iterations: ", nb_iter)
             # pos_photons[still_moving] += velocities_photons[still_moving]
+            print("obj_pos.shape before call to simulate_photon:", obj_pos.shape)
             (pos_photons[still_moving],
              velocities_photons[still_moving],
              accelerations_pert_old[still_moving]) = simulate_photon(n_bodies,
                                                                      obj_masses,
                                                                      dt,
-                                                                     obj_pos,
+                                                                     obj_pos.copy(),
                                                                      obj_velocities,
                                                                      accelerations_pert_old[still_moving],
                                                                      pos_photons[still_moving],
@@ -84,6 +94,7 @@ class Camera:
 
             reached_background[still_moving] = np.linalg.norm(pos_photons[still_moving] - self.position, axis=-1) > self.background_dist  # the photons that travelled beyond a certain distance to the camera
 
+            print("obj_pos.shape after call to simulate_photon:", obj_pos.shape)
             p = np.tile(pos_photons[still_moving][np.newaxis, :, :], (obj_pos.shape[0], 1, 1))
             o = np.tile(obj_pos[:, np.newaxis, :], (1, pos_photons[still_moving].shape[0], 1))
             reached_object[still_moving] = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < distance_threshold  # the photons that are closer than a certain threshold to at least one object
@@ -102,5 +113,5 @@ class Camera:
         px_v = ((np.pi / 2 - phi) * (self.background_image.shape[0] - 1) / np.pi).astype(int)
         colors[reached_background, :] = self.background_image[tuple(px_v), tuple(px_u)] / 255.0
 
-        image = colors.reshape(self.im_height, self.im_width, 3)
+        image = colors.reshape(self.im_height, len(x_range), 3)
         return image

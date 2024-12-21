@@ -3,4 +3,4 @@ from scene import *
 
 background_image = image.imread("background.jpg")
 scene = Scene(background_image)
-scene.render_animation(2, 50)
+scene.render_animation(1, 50, 0)

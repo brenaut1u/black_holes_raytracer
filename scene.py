@@ -11,7 +11,7 @@ class Scene:
                              np.asarray([0, 0, -1e9]),
                              0.3,
                              1,
-                             400,
+                             300,
                              16 / 9,
                              background_image,
                              1e10)
@@ -27,10 +27,12 @@ class Scene:
             len(self.masses), self.masses, dt, self.positions, self.velocities, self.accelerations_pert_old
         )
 
-    def render_animation(self, nb_frames, dt):
+    def render_animation(self, nb_frames, dt, part=-1):
+        # If part == -1, we render the full image. Otherwise, we only render a third of it (to allow to split up the render)
+
         for frame in range(nb_frames):
             print("Frame", frame)
-            img = self.camera.render(self.positions, self.velocities, self.masses, 0.1)
+            img = self.camera.render(self.positions, self.velocities, self.masses, 0.1, part=part)
             image.imsave('out/frame%02d.png' % frame, img)
 
             self.update_scene(dt)
