@@ -11,7 +11,7 @@ class Scene:
                              np.asarray([0, 0, -1e9]),
                              0.3,
                              1,
-                             300,
+                             700,
                              16 / 9,
                              background_image,
                              1e10)

@@ -48,11 +48,10 @@ class Camera:
 
         colors = 0 * pos_photons
 
-        # pos_photons += velocities_photons
         pos_photons, velocities_photons, accelerations_pert_old = simulate_photon(n_bodies,
                                                                                   obj_masses,
                                                                                   dt,
-                                                                                  obj_pos.copy(),
+                                                                                  obj_pos,
                                                                                   obj_velocities,
                                                                                   accelerations_pert_old,
                                                                                   pos_photons,
@@ -71,35 +70,35 @@ class Camera:
 
         nb_iter = 0
         while np.max(still_moving) > 0 and nb_iter < iter_max:
-            # if len(still_moving[still_moving > 0]) == 1:
-            #     print(len(still_moving), len(pos_photons))
 
             print("    Photons still moving:", len(still_moving[still_moving > 0]),
                   "; photons fallen into singularity:", len(reached_object[reached_object == 1]),
                   "; photons that reached background: ", len(reached_background[reached_background == 1]),
                   "; iterations: ", nb_iter)
-            # pos_photons[still_moving] += velocities_photons[still_moving]
-            print("obj_pos.shape before call to simulate_photon:", obj_pos.shape)
-            (pos_photons[still_moving],
-             velocities_photons[still_moving],
-             accelerations_pert_old[still_moving]) = simulate_photon(n_bodies,
-                                                                     obj_masses,
-                                                                     dt,
-                                                                     obj_pos.copy(),
-                                                                     obj_velocities,
-                                                                     accelerations_pert_old[still_moving],
-                                                                     pos_photons[still_moving],
-                                                                     velocities_photons[still_moving],
-                                                                     masses_photons[still_moving])
 
-            reached_background[still_moving] = np.linalg.norm(pos_photons[still_moving] - self.position, axis=-1) > self.background_dist  # the photons that travelled beyond a certain distance to the camera
+            try:
+                (pos_photons[still_moving],
+                 velocities_photons[still_moving],
+                 accelerations_pert_old[still_moving]) = simulate_photon(n_bodies,
+                                                                         obj_masses,
+                                                                         dt,
+                                                                         obj_pos,
+                                                                         obj_velocities,
+                                                                         accelerations_pert_old[still_moving],
+                                                                         pos_photons[still_moving],
+                                                                         velocities_photons[still_moving],
+                                                                         masses_photons[still_moving])
 
-            print("obj_pos.shape after call to simulate_photon:", obj_pos.shape)
-            p = np.tile(pos_photons[still_moving][np.newaxis, :, :], (obj_pos.shape[0], 1, 1))
-            o = np.tile(obj_pos[:, np.newaxis, :], (1, pos_photons[still_moving].shape[0], 1))
-            reached_object[still_moving] = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < distance_threshold  # the photons that are closer than a certain threshold to at least one object
+                reached_background[still_moving] = np.linalg.norm(pos_photons[still_moving] - self.position, axis=-1) > self.background_dist  # the photons that travelled beyond a certain distance to the camera
 
-            still_moving[still_moving] = ~reached_object[still_moving] & ~reached_background[still_moving]
+                p = np.tile(pos_photons[still_moving][np.newaxis, :, :], (obj_pos.shape[0], 1, 1))
+                o = np.tile(obj_pos[:, np.newaxis, :], (1, pos_photons[still_moving].shape[0], 1))
+                reached_object[still_moving] = np.min(np.linalg.norm(p - o, axis=-1), axis=0) < distance_threshold  # the photons that are closer than a certain threshold to at least one object
+
+                still_moving[still_moving] = ~reached_object[still_moving] & ~reached_background[still_moving]
+            except:
+                print("Numba's mysterious error occured again... but this is fine")
+                break
 
             nb_iter += 1
 
