@@ -126,18 +126,18 @@ def update(frame):
 
 
 # GIF
-# gif_path = 'nbody_photon_evolution.gif'
-# frames = time_steps
-#
-# writer = PillowWriter(fps=30)
-# with writer.saving(fig, gif_path, dpi=100):
-#     for t in range(frames):
-#         update(t)
-#         writer.grab_frame()
-#
-# # plt.close(fig)
-#
-# if os.path.exists(gif_path):
-#     print(f"GIF is saved to: {gif_path}")
-# else:
-#     print("GIF generation failed")
+gif_path = 'nbody_photon_evolution.gif'
+frames = time_steps
+
+writer = PillowWriter(fps=30)
+with writer.saving(fig, gif_path, dpi=100):
+    for t in range(frames):
+        update(t)
+        writer.grab_frame()
+
+plt.close(fig)
+
+if os.path.exists(gif_path):
+    print(f"GIF is saved to: {gif_path}")
+else:
+    print("GIF generation failed")

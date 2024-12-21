@@ -7,7 +7,6 @@ Created on Sat Nov 30 22:47:20 2024
 """
 
 import os  # For file management
-from PIL import Image  # For GIF creation
 import numpy as np
 from numba import njit, prange
 import matplotlib

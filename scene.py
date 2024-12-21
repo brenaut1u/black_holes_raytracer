@@ -33,10 +33,6 @@ class Scene:
         for frame in range(nb_frames):
             print("Frame", frame)
             img = self.camera.render(self.positions, self.velocities, self.masses, 0.1, part=part)
-            image.imsave('out/frame%02d.png' % frame, img)
+            image.imsave('out/frame%03d.png' % frame, img)
 
             self.update_scene(dt)
-
-            # plt.axis("off")
-            # plt.imshow(image)
-            # plt.show()
